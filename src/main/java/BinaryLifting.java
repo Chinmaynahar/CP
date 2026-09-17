@@ -66,3 +66,25 @@ public class BinaryLifting {
     public boolean isAncestor(int u, int v) {
         return tin[u] <= tin[v] && tout[u] >= tout[v];
     }
+
+    public int lca(int u, int v) {
+        if (isAncestor(u, v)) return u;
+        if (isAncestor(v, u)) return v;
+
+        for (int i = LOG; i >= 0; i--) {
+            if (!isAncestor(up[u][i], v)) {
+                u = up[u][i];
+            }
+        }
+        return up[u][0];
+    }
+
+    public int getKthAncestor(int node, int k) {
+        for (int i = 0; i <= LOG; i++) {
+            if (((k >> i) & 1) == 1) {
+                node = up[node][i];
+            }
+        }
+        return node;
+    }
+}
