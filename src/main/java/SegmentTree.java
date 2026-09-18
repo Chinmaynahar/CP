@@ -36,3 +36,77 @@ public class SegmentTree{
             return op.apply(resLeft, resRight);
         }
     }
+
+    public static class LazySegmentTree {
+        private final int n;
+        private final long[] tree;
+        private final long[] lazy;
+
+        public LazySegmentTree(long[] arr) {
+            this.n = arr.length;
+            this.tree = new long[4 * n];
+            this.lazy = new long[4 * n];
+            if (n > 0) build(1, 0, n - 1, arr);
+        }
+
+        private void build(int node, int l, int r, long[] arr) {
+            if (l == r) {
+                tree[node] = arr[l];
+                return;
+            }
+            int mid = l + ((r - l) >> 1);
+            build(node << 1, l, mid, arr);
+            build((node << 1) | 1, mid + 1, r, arr);
+            tree[node] = tree[node << 1] + tree[(node << 1) | 1];
+        }
+
+        private void pushDown(int node, int l, int r) {
+            if (lazy[node] == 0) return;
+            int mid = l + ((r - l) >> 1);
+            int left = node << 1;
+            int right = left | 1;
+            long val = lazy[node];
+
+            tree[left] += val * (mid - l + 1);
+            lazy[left] += val;
+
+            tree[right] += val * (r - mid);
+            lazy[right] += val;
+
+            lazy[node] = 0;
+        }
+
+        public void updateRange(int ql, int qr, long val) {
+            if (ql > qr || ql < 0 || qr >= n) return;
+            updateRange(1, 0, n - 1, ql, qr, val);
+        }
+
+        private void updateRange(int node, int l, int r, int ql, int qr, long val) {
+            if (ql <= l && r <= qr) {
+                tree[node] += val * (r - l + 1);
+                lazy[node] += val;
+                return;
+            }
+            pushDown(node, l, r);
+            int mid = l + ((r - l) >> 1);
+            if (ql <= mid) updateRange(node << 1, l, mid, ql, qr, val);
+            if (qr > mid) updateRange((node << 1) | 1, mid + 1, r, ql, qr, val);
+            tree[node] = tree[node << 1] + tree[(node << 1) | 1];
+        }
+
+        public long querySum(int ql, int qr) {
+            if (ql > qr || ql < 0 || qr >= n) return 0;
+            return querySum(1, 0, n - 1, ql, qr);
+        }
+
+        private long querySum(int node, int l, int r, int ql, int qr) {
+            if (ql <= l && r <= qr) return tree[node];
+            pushDown(node, l, r);
+            int mid = l + ((r - l) >> 1);
+            long sum = 0;
+            if (ql <= mid) sum += querySum(node << 1, l, mid, ql, qr);
+            if (qr > mid) sum += querySum((node << 1) | 1, mid + 1, r, ql, qr);
+            return sum;
+        }
+    }
+}
